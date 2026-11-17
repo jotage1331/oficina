@@ -1,0 +1,207 @@
+# 🚗 OficinaFlow (GearFlow) - Especificação Completa do Projeto
+
+> **Sistema de Gestão Operacional e Cotação de Peças para Oficinas Mecânicas Independentes**  
+> *Versão do Documento:* 1.0.0 • *Foco:* Desktop & PWA Mobile de Bolso
+
+---
+
+## 📌 1. Visão Geral & Proposta de Valor
+
+O **OficinaFlow** é uma plataforma web/PWA desenvolvida para oficinas mecânicas e centros automotivos independentes, especialmente desenhada para profissionais que precisam de **agilidade máxima, zero burocracia e controle em tempo real pelo celular**, como mecânicos autônomos ou profissionais que conciliam a oficina com outras escalas de trabalho.
+
+### A Dor Central do Mercado
+A maioria dos softwares de oficina no Brasil foca em burocracia contábil e fiscal de balcão, ignorando o maior gargalo diário do mecânico:
+1. **Perda de tempo na cotação de peças:** Horas no WhatsApp perguntando valores para autopeças locais.
+2. **Esquecimento e desorganização de orçamentos:** Anotações em papéis e orçamentos que demoram horas para chegar ao cliente.
+3. **Falta de mobilidade:** Necessidade de estar na frente de um computador para saber quais carros estão no pátio ou aprovar serviços.
+
+### O Diferencial do OficinaFlow
+* **Cotação Inteligente de Peças no WhatsApp:** Dispara a lista de peças necessárias para várias autopeças em segundos e compara na tela qual está mais em conta.
+* **Margem de Lucro Automática (Markup):** Calcula o preço final para o cliente sem que ele veja o custo real de compra.
+* **Orçamento com 1 Toque:** Envia orçamento detalhado e formatado direto para o WhatsApp do proprietário do veículo.
+* **Visão Operacional de Bolso (PWA):** Permite acompanhar o pátio, checar serviços e lançar gastos pelo smartphone em qualquer lugar.
+
+---
+
+## 🔄 2. Matriz de Reaproveitamento do Projeto Base
+
+O projeto reaproveita 80% da arquitetura sólida já construída, testada e homologada:
+
+| Módulo no Projeto Base (Pet Shop) | Módulo no OficinaFlow (Oficina) | Complexidade da Adaptação |
+| :--- | :--- | :---: |
+| **Tutor (Cliente)** | **Proprietário do Veículo (Cliente)** | Baixa (mesma estrutura) |
+| **Pet** | **Veículo** (Placa, Modelo, Marca, Ano, KM, Combustível) | Baixa (ajuste de colunas) |
+| **Agendamento** | **Ordem de Serviço (O.S.)** | Média (adição de itens de peças/serviços) |
+| **Status de Pagamento (Já Pago / Pendente)** | **Status Financeiro da O.S.** | Baixa (reaproveitamento 100%) |
+| **Disparo de WhatsApp Dinâmico** | **Avisos de Carro Pronto e Orçamento** | Baixa (novos templates de mensagem) |
+| **Estoque de Materiais** | **Estoque de Insumos & Ferramentas** | Baixa (mesmo modelo) |
+| **Docker, SQLite e PWA** | **Docker, SQLite e PWA** | Nenhuma (reaproveitamento 100%) |
+
+---
+
+## 🛠️ 3. O Ciclo Completo da Ordem de Serviço (O.S.)
+
+```mermaid
+flowchart TD
+    A["🚗 Entrada do Veículo / Agendamento<br>(Placa, KM, Queixa do Cliente)"] --> B["🔍 Diagnóstico Mecânico & Definição das Peças"]
+    B --> C["📦 Módulo de Cotação de Autopeças<br>(Disparo WhatsApp para Fornecedores)"]
+    C --> D["💰 Comparação de Preços & Aplicação de Markup"]
+    D --> E["📲 Envio do Orçamento Formatado no WhatsApp do Cliente"]
+    E -->|Cliente Aprovou| F["🔧 O.S. Em Andamento (Execução dos Serviços)"]
+    E -->|Cliente Recusou| G["❌ O.S. Cancelada / Carro Liberado"]
+    F --> H["✅ Conclusão do Serviço & Teste de Rodagem"]
+    H --> I["📱 Mensagem Automática: Carro Pronto para Retirada"]
+    I --> J["💵 Cobrança no Balcão: Já Pago ou Pgto Pendente"]
+```
+
+---
+
+## 💡 4. O Módulo Inovador: Cotação Inteligente de Autopeças
+
+### 4.1. Cadastro de Fornecedores Locais
+O mecânico cadastra as lojas de autopeças parceiras da sua região:
+* Nome da Loja (ex: *Silva Autopeças*, *Distribuidora Central*).
+* Vendedor / Contato WhatsApp.
+* Especialidades (ex: *Suspensão e Freios*, *Óleos e Filtros*, *Entrega Rápida 30min*).
+
+### 4.2. Disparo Rápido de Cotação
+Na tela da O.S., ao selecionar as peças com defeito, o sistema gera com 1 clique a mensagem pronta para envio no WhatsApp das lojas:
+```text
+Fala [Nome do Vendedor], beleza? Cotação rápida aqui da oficina:
+Veículo: [Marca Modelo Ano Motor]
+Peças:
+- 1x Jogo de pastilhas dianteiras
+- 2x Discos de freio ventilados
+- 4L Óleo 5W30 Sintético
+Quais marcas você tem a pronta entrega e os valores? Valeu!
+```
+
+### 4.3. Quadro Comparativo de Cotação
+O mecânico digita os retornos recebidos e a tela destaca o melhor preço por item:
+
+| Item Solicitado | Loja A (Silva) | Loja B (Central) | Decisão de Compra |
+| :--- | :---: | :---: | :--- |
+| **Óleo 5W30 (4L)** | **R$ 130,00** 🏆 | R$ 155,00 | Comprar na Loja A |
+| **Pastilhas de Freio** | R$ 180,00 | **R$ 140,00** 🏆 | Comprar na Loja B |
+| **Discos de Freio** | **R$ 220,00** 🏆 | R$ 240,00 | Comprar na Loja A |
+| **Economia Total:** | — | — | **R$ 75,00 economizados na compra** |
+
+### 4.4. Regra de Markup (Margem de Revenda)
+* O cliente **nunca** vê o preço que a autopeças cobrou.
+* O sistema aplica a margem configurada pelo mecânico (ex: +30% nas peças).
+* O orçamento final para o cliente mostra:
+  * Peças: R$ 637,00
+  * Mão de Obra: R$ 250,00
+  * **Total da O.S.: R$ 887,00**
+
+---
+
+## 🗄️ 5. Modelo de Dados Estruturado (Database Schema)
+
+```mermaid
+erDiagram
+    CLIENTE ||--o{ VEICULO : possui
+    VEICULO ||--o{ ORDEM_SERVICO : recebe
+    ORDEM_SERVICO ||--o{ ITEM_OS : contem
+    FORNECEDOR ||--o{ COTACAO_ITEM : fornece
+    ITEM_OS ||--o{ COTACAO_ITEM : compara
+    USUARIO ||--o{ ORDEM_SERVICO : opera
+
+    CLIENTE {
+        int id PK
+        string nome
+        string telefone_whatsapp
+        string cpf_cnpj
+        string observacoes
+    }
+
+    VEICULO {
+        int id PK
+        int cliente_id FK
+        string placa
+        string marca
+        string modelo
+        int ano
+        int km_atual
+        string cor
+        string combustivel
+    }
+
+    ORDEM_SERVICO {
+        int id PK
+        int veiculo_id FK
+        int usuario_id FK
+        string status "orcamento, aprovado, em_andamento, concluido, cancelado"
+        string status_pagamento "pago, pendente"
+        decimal valor_mao_obra
+        decimal valor_pecas
+        decimal valor_total
+        datetime data_entrada
+        datetime data_previsao
+        datetime data_conclusao
+        text diagnostico_defeito
+        text observacoes
+    }
+
+    ITEM_OS {
+        int id PK
+        int ordem_servico_id FK
+        string tipo "peca, servico"
+        string descricao
+        int quantidade
+        decimal valor_custo
+        decimal margem_markup
+        decimal valor_venda
+    }
+
+    FORNECEDOR {
+        int id PK
+        string nome_loja
+        string contato_vendedor
+        string telefone_whatsapp
+        string especialidade
+    }
+
+    COTACAO_ITEM {
+        int id PK
+        int item_os_id FK
+        int fornecedor_id FK
+        decimal valor_cotado
+        string marca_peca
+        boolean escolhido
+    }
+```
+
+---
+
+## 📱 6. Arquitetura Mobile First (PWA Operacional de Bolso)
+
+Como o usuário divide a oficina com escalas de bombeiro, a experiência móvel deve ser instantânea:
+
+* **Página Inicial Mobile (Cards do Pátio):**
+  * Mostra os carros que estão no pátio hoje divididos por status (*"3 Aguardando Orçamento"*, *"2 Em Manutenção"*, *"1 Pronto para Retirada"*).
+* **Ações em 1 Toque:**
+  * Ícone WhatsApp direto no card do carro para chamar o dono.
+  * Botão de "Carro Pronto" que dispara a mensagem automática de retirada.
+* **Lançamento Rápido de Despesas de Rua:**
+  * Permite lançar combustível para a oficina ou compras rápidas de balcão direto pelo celular.
+
+---
+
+## 🚀 7. Roadmap de Implementação Sugerido
+
+### Fase 1: MVP Operacional (Sprints 1 e 2)
+* Setup do novo repositório derivado do projeto base.
+* Modelação de `Cliente`, `Veiculo` (com busca por placa) e `OrdemServico`.
+* Criação da tela de visualização do pátio / agendamentos do dia.
+* Disparo de orçamentos e avisos no WhatsApp.
+
+### Fase 2: O Diferencial de Cotação (Sprint 3)
+* Cadastro de Fornecedores de Autopeças.
+* Tela de Cotação Rápida e Comparador de Preços.
+* Regra automática de Markup em peças.
+
+### Fase 3: PWA & Relatórios (Sprint 4)
+* Adaptação responsiva com Bottom Navigation Bar.
+* Relatório financeiro: Lucro em Mão de Obra vs. Lucro em Peças.
+* Gestão de contas a pagar e a receber.
